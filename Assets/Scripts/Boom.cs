@@ -1,4 +1,3 @@
-using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 
 public class Boom : MonoBehaviour
@@ -13,6 +12,8 @@ public class Boom : MonoBehaviour
 
     private SpriteRenderer _spriteRenderer;
     private Color _baseColor;
+    private Color _initialColor;
+    private bool _initialColorCached;
     private float _remaining;
     private float _phase;
     private bool _exploded;
@@ -27,16 +28,21 @@ public class Boom : MonoBehaviour
             _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         }
 
+        CacheInitialColor();
         _selfCollider = GetComponent<Collider2D>();
         CachePlayerCollider();
     }
 
     private void OnEnable()
     {
+        _exploded = false;
+        _phase = -0.5f * Mathf.PI; // start sine wave at base color
         _remaining = Mathf.Max(0f, _countDown);
         if (_spriteRenderer != null)
         {
-            _baseColor = _spriteRenderer.color;
+            CacheInitialColor();
+            _baseColor = _initialColor;
+            _spriteRenderer.color = _baseColor;
         }
 
         if (_remaining <= 0f)
@@ -144,5 +150,15 @@ public class Boom : MonoBehaviour
     {
         _playerCollider = null;
         _playerCollider = PlayerController.Instance.GetComponent<Collider2D>();
+    }
+
+    private void CacheInitialColor()
+    {
+        if (_spriteRenderer == null || _initialColorCached)
+            return;
+
+        _initialColor = _spriteRenderer.color;
+        _baseColor = _initialColor;
+        _initialColorCached = true;
     }
 }
