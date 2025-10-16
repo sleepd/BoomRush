@@ -13,20 +13,25 @@ public class BoomSpawner : MonoBehaviour
     [SerializeField] private float _height = 10.80f;
 
     private float _timer;
+    private int _currentBatchSize;
 
     private void OnEnable()
     {
-        _timer = _spawnInterval;
+        _timer = 1f;
+        _currentBatchSize = Mathf.Clamp(_minPerBatch, 0, _maxPerBatch);
     }
 
     private void Update()
     {
+        if (!GameManager.Instance.IsRunning) return;
+        
         if (_boomPrefab == null)
             return;
 
         _timer -= Time.deltaTime;
         if (_timer <= 0f)
         {
+            PlayerController.Instance.ResetWalls();
             SpawnBatch();
             _timer = Mathf.Max(0.01f, _spawnInterval);
         }
@@ -34,11 +39,16 @@ public class BoomSpawner : MonoBehaviour
 
     private void SpawnBatch()
     {
-        int count = Mathf.Clamp(Random.Range(_minPerBatch, _maxPerBatch + 1), 0, 1000);
+        int count = Mathf.Clamp(_currentBatchSize, 0, 1000);
         for (int i = 0; i < count; i++)
         {
             Vector3 pos = RandomEdgePosition();
             Instantiate(_boomPrefab, pos, Quaternion.identity);
+        }
+
+        if (_currentBatchSize < _maxPerBatch)
+        {
+            _currentBatchSize = Mathf.Min(_currentBatchSize + 1, _maxPerBatch);
         }
     }
 

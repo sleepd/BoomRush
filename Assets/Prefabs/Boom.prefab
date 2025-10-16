@@ -107,3 +107,7 @@ MonoBehaviour:
   _countDown: 5
   _minFlashHz: 0.1
   _maxFlashHz: 4
+  _player: {fileID: 0}
+  _lineOfSightMask:
+    serializedVersion: 2
+    m_Bits: 64
