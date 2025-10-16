@@ -8,12 +8,14 @@ public class PlayerController : Singleton<PlayerController>
     [SerializeField] private bool normalizeDiagonal = true;
     [SerializeField] GameObject _wallPrefab;
     [SerializeField] int _wallLimit = 3;
+    [SerializeField] private Vector2 movementBoundsSize = new(19f, 10f);
 
     private Rigidbody2D _rigidbody;
     private InputSystem_Actions inputAction;
     private InputAction _jumpAction;
     private Vector2 _moveInput;
     private readonly List<GameObject> _spawnedWalls = new();
+    private Vector2 _movementBoundsCenter;
 
     public override void Awake()
     {
@@ -26,6 +28,7 @@ public class PlayerController : Singleton<PlayerController>
 
         inputAction = new InputSystem_Actions();
         _jumpAction = inputAction.asset.FindAction("Player/Jump", throwIfNotFound: false);
+        _movementBoundsCenter = transform.position;
     }
 
     private void OnEnable()
@@ -87,6 +90,19 @@ public class PlayerController : Singleton<PlayerController>
 
         Vector2 delta = _moveInput * (moveSpeed * Time.fixedDeltaTime);
         Vector2 targetPosition = _rigidbody.position + delta;
+
+        if (movementBoundsSize.x > 0f && movementBoundsSize.y > 0f)
+        {
+            // Keep the player within the rectangular movement bounds centered on spawn position.
+            Vector2 halfSize = movementBoundsSize * 0.5f;
+            float minX = _movementBoundsCenter.x - halfSize.x;
+            float maxX = _movementBoundsCenter.x + halfSize.x;
+            float minY = _movementBoundsCenter.y - halfSize.y;
+            float maxY = _movementBoundsCenter.y + halfSize.y;
+            targetPosition.x = Mathf.Clamp(targetPosition.x, minX, maxX);
+            targetPosition.y = Mathf.Clamp(targetPosition.y, minY, maxY);
+        }
+
         _rigidbody.MovePosition(targetPosition);
     }
 
